@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -7,12 +9,42 @@ import 'crud_exceptions.dart'; // This one's mine!!
 class EntryService {
   Database? _db;
 
-  Future<DatabaseEntry> updateEntry(
-      {required DatabaseEntry entry, required String text}) async {
-    final db = _getDataBaseOrThrow();
-    await getEntry(entryId: entry.id);
-    // Just a stopping point for the case that the entry DNE.
+  // Exposing a cached list of notes to the EntryService
+  List<DatabaseEntry> _entries = [];
 
+  final _entriesStreamController =
+      StreamController<List<DatabaseEntry>>.broadcast();
+
+  Future<DatabaseUser> getOrCreateUser({required String email}) async {
+    try {
+      final user = await getUser(email: email);
+      return user;
+    } on CouldNotFindUser {
+      final createdUser = await createUser(email: email);
+      return createdUser;
+    } catch (e) {
+      // Not handling the CouldNotCreateUser error. Just rethrowing.
+      // Good for debugging. just place BREAKPOINT at 'rethrow;'
+      rethrow;
+    }
+  }
+
+  Future<void> _cachEntries() async {
+    final allEntries = await getAllEntries();
+    _entries = allEntries.toList();
+    _entriesStreamController.add(_entries);
+  }
+
+  Future<DatabaseEntry> updateEntry({
+    required DatabaseEntry entry,
+    required String text,
+  }) async {
+    final db = _getDataBaseOrThrow();
+
+    // Make sure entry exists
+    await getEntry(entryId: entry.id);
+
+    // Update db
     final updatesCount = await db.update(entryTable, {
       textColumn: text,
       isSyncedWithCloudColumn: 0,
@@ -21,7 +53,11 @@ class EntryService {
     if (updatesCount == 0) {
       throw CouldNotUpdateEntry();
     } else {
-      return await getEntry(entryId: entry.id);
+      final updatedEntry = await getEntry(entryId: entry.id);
+      _entries.removeWhere((entry) => entry.id == updatedEntry.id);
+      _entries.add(updatedEntry);
+      _entriesStreamController.add(_entries);
+      return updatedEntry;
     }
   }
 
@@ -45,14 +81,23 @@ class EntryService {
     if (entries.isEmpty) {
       throw CouldNotFindEntry();
     } else {
-      return DatabaseEntry.fromRow(entries.first);
+      final entry = DatabaseEntry.fromRow(entries.first);
+      // The cached entry copy could be outdated compared to the actual db
+      // Updating our local cache as well
+      _entries.removeWhere((entry) => entry.id == entryId);
+      _entries.add(entry);
+      _entriesStreamController.add(_entries);
+      return entry;
     }
   }
 
 // Hopefully i never need this one
   Future<int> deleteAllEntries() async {
     final db = _getDataBaseOrThrow();
-    return await db.delete(entryTable);
+    final numberOfDeletions = await db.delete(entryTable);
+    _entries = [];
+    _entriesStreamController.add(_entries);
+    return numberOfDeletions;
   }
 
   // TODO: check to see if using 'entryId'
@@ -66,6 +111,9 @@ class EntryService {
     );
     if (deletedCount == 0) {
       throw CouldNotDeleteEntry();
+    } else {
+      _entries.removeWhere((entry) => entry.id == entryId);
+      _entriesStreamController.add(_entries);
     }
   }
 
@@ -94,6 +142,9 @@ class EntryService {
       text: text,
       isSyncedWithCloud: true,
     );
+
+    _entries.add(entry);
+    _entriesStreamController.add(_entries);
     return entry;
   }
 
@@ -186,6 +237,7 @@ class EntryService {
       await db.execute(createUserTable);
       // Creates the diary entry table using the execute command
       await db.execute(createEntryTable);
+      await _cachEntries();
     } on MissingPlatformDirectoryException {
       throw UnableToGetDocumentsDirectory();
     }
