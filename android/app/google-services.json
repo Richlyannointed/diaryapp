@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "134981879909",
+    "project_id": "flutter-diaryapp",
+    "storage_bucket": "flutter-diaryapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134981879909:android:0a308df62aae3ff7ae1e8c",
+        "android_client_info": {
+          "package_name": "za.co.diaryapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "134981879909-5tlgt88l2v7rmmo3hrot67g7tfnfestj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLPAfZ8KDph5N1H5gyRwXJWsiUxWPuvZU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "134981879909-5tlgt88l2v7rmmo3hrot67g7tfnfestj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134981879909:android:03b665d9d8a29891ae1e8c",
+        "android_client_info": {
+          "package_name": "za.co.noodlemusic.diaryapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "134981879909-5tlgt88l2v7rmmo3hrot67g7tfnfestj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLPAfZ8KDph5N1H5gyRwXJWsiUxWPuvZU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "134981879909-5tlgt88l2v7rmmo3hrot67g7tfnfestj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
